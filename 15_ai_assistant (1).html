@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="kk" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Өнегелі 15 минут | AI Ассистент</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        kazakh: {
+                            blue: '#00afcc',
+                            gold: '#f0b429'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .ornament-bg {
+            background-image: radial-gradient(#16a34a 0.75px, transparent 0.75px), radial-gradient(#00afcc 0.75px, #f8fafc 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 font-sans antialiased flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <div id="notification" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center space-x-3">
+        <i id="notif-icon" class="fas fa-check-circle text-brand-500 text-xl"></i>
+        <span id="notif-text" class="text-sm font-medium">Хабарлама</span>
+    </div>
+
+    <!-- Role & Language Modal (First time / Quick Switch) -->
+    <div id="setup-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-8 border border-slate-100 overflow-hidden relative">
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-500 via-kazakh-blue to-kazakh-gold"></div>
+            
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 text-brand-600 text-2xl mb-4 shadow-inner">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h2 id="modal-title" class="text-2xl font-bold text-slate-900">«Өнегелі 15 минут» жобасына қош келдіңіз!</h2>
+                <p id="modal-subtitle" class="text-slate-500 text-sm mt-1">Жалғастыру үшін рөліңіз бен тіліңізді таңдаңыз</p>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Language selector in modal -->
+                <div>
+                    <label id="lbl-select-lang" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Тілді таңдаңыз / Выберите язык</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="setLanguage('kk')" id="lang-btn-kk" class="py-3 px-4 rounded-xl border-2 font-medium text-sm flex items-center justify-center space-x-2 transition-all border-brand-500 bg-brand-50 text-brand-700">
+                            <span>🇰🇿</span> <span>Қазақша</span>
+                        </button>
+                        <button onclick="setLanguage('ru')" id="lang-btn-ru" class="py-3 px-4 rounded-xl border-2 font-medium text-sm flex items-center justify-center space-x-2 transition-all border-slate-200 bg-white text-slate-600 hover:border-slate-300">
+                            <span>🇷🇺</span> <span>Русский</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Role selector in modal -->
+                <div>
+                    <label id="lbl-select-role" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Пайдаланушы рөлі / Роль пользователя</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="setRole('teacher')" id="role-btn-teacher" class="role-card py-4 px-3 rounded-xl border-2 text-center transition-all border-brand-500 bg-brand-50/50 text-brand-800">
+                            <i class="fas fa-chalkboard-teacher text-xl mb-2 text-brand-600"></i>
+                            <div id="role-lbl-t" class="font-semibold text-sm">Мұғалім</div>
+                        </button>
+                        <button onclick="setRole('student')" id="role-btn-student" class="role-card py-4 px-3 rounded-xl border-2 text-center transition-all border-slate-200 bg-white text-slate-600 hover:border-slate-300">
+                            <i class="fas fa-user-graduate text-xl mb-2 text-kazakh-blue"></i>
+                            <div id="role-lbl-s" class="font-semibold text-sm">Оқушы</div>
+                        </button>
+                        <button onclick="setRole('parent')" id="role-btn-parent" class="role-card py-4 px-3 rounded-xl border-2 text-center transition-all border-slate-200 bg-white text-slate-600 hover:border-slate-300">
+                            <i class="fas fa-users text-xl mb-2 text-amber-500"></i>
+                            <div id="role-lbl-p" class="font-semibold text-sm">Ата-ана</div>
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="closeSetupModal()" id="modal-submit-btn" class="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl shadow-lg shadow-brand-600/20 transition-all flex items-center justify-center space-x-2">
+                    <span id="modal-btn-text">Бастау</span> <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand / Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white text-xl shadow-md shadow-brand-500/30">
+                    <i class="fas fa-book-open-reader"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg sm:text-xl text-slate-900 tracking-tight leading-tight">Өнегелі 15 минут</h1>
+                    <p class="text-xs text-slate-500 font-medium">«Адал азамат» тәрбиелік платформасы</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs (Desktop) -->
+            <nav class="hidden lg:flex items-center space-x-1">
+                <button onclick="switchTab('home')" class="nav-tab px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition-all active-tab" data-tab="home">
+                    <i class="fas fa-house mr-1.5"></i> <span data-i18n="nav_home">Басты бет</span>
+                </button>
+                <button onclick="switchTab('chat')" class="nav-tab px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition-all" data-tab="chat">
+                    <i class="fas fa-robot mr-1.5"></i> <span data-i18n="nav_chat">AI Ассистент</span>
+                </button>
+                <button onclick="switchTab('quick15')" class="nav-tab px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition-all text-amber-600 bg-amber-50" data-tab="quick15">
+                    <i class="fas fa-stopwatch mr-1.5"></i> <span data-i18n="nav_quick">15 мин сабақ</span>
+                </button>
+                <button onclick="switchTab('tasks')" class="nav-tab px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition-all" data-tab="tasks">
+                    <i class="fas fa-pen-to-square mr-1.5"></i> <span data-i18n="nav_tasks">Тапсырма</span>
+                </button>
+                <button onclick="switchTab('tests')" class="nav-tab px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition-all" data-tab="tests">
+                    <i class="fas fa-clipboard-question mr-1.5"></i> <span data-i18n="nav_tests">Тест</span>
+                </button>
+                <button onclick="switchTab('videos')" class="nav-tab px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition-all" data-tab="videos">
+                    <i class="fas fa-film mr-1.5"></i> <span data-i18n="nav_videos">Бейнетека</span>
+                </button>
+                <button onclick="switchTab('values')" class="nav-tab px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition-all" data-tab="values">
+                    <i class="fas fa-gem mr-1.5"></i> <span data-i18n="nav_values">Құндылықтар</span>
+                </button>
+                <button onclick="switchTab('feedback')" class="nav-tab px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition-all" data-tab="feedback">
+                    <i class="fas fa-comments mr-1.5"></i> <span data-i18n="nav_feedback">Кері байланыс</span>
+                </button>
+            </nav>
+
+            <!-- Right Controls: Role pill & Language Switcher -->
+            <div class="flex items-center space-x-3">
+                <button onclick="openSetupModal()" class="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-semibold text-slate-700 transition-all">
+                    <i class="fas fa-user-tag text-brand-600"></i>
+                    <span id="current-role-badge">Мұғалім</span>
+                </button>
+
+                <!-- Language Switcher Button -->
+                <div class="flex bg-slate-100 p-1 rounded-xl">
+                    <button onclick="setLanguage('kk')" id="lang-kk" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm">KK</button>
+                    <button onclick="setLanguage('ru')" id="lang-ru" class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all text-slate-600 hover:text-slate-900">RU</button>
+                </div>
+
+                <!-- Mobile menu toggle -->
+                <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-slate-600 hover:text-slate-900">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-4 space-y-1">
+            <button onclick="switchTab('home'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100"><i class="fas fa-house mr-2"></i> <span data-i18n="nav_home">Басты бет</span></button>
+            <button onclick="switchTab('chat'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100"><i class="fas fa-robot mr-2"></i> <span data-i18n="nav_chat">AI Ассистент</span></button>
+            <button onclick="switchTab('quick15'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-amber-700 bg-amber-50"><i class="fas fa-stopwatch mr-2"></i> <span data-i18n="nav_quick">15 мин сабақ</span></button>
+            <button onclick="switchTab('tasks'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100"><i class="fas fa-pen-to-square mr-2"></i> <span data-i18n="nav_tasks">Тапсырма жасау</span></button>
+            <button onclick="switchTab('tests'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100"><i class="fas fa-clipboard-question mr-2"></i> <span data-i18n="nav_tests">Тест жасау</span></button>
+            <button onclick="switchTab('videos'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100"><i class="fas fa-film mr-2"></i> <span data-i18n="nav_videos">Бейнетека</span></button>
+            <button onclick="switchTab('values'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100"><i class="fas fa-gem mr-2"></i> <span data-i18n="nav_values">Құндылықтар</span></button>
+            <button onclick="switchTab('feedback'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100"><i class="fas fa-comments mr-2"></i> <span data-i18n="nav_feedback">Кері байланыс</span></button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto">
+
+        <!-- 1. HOME TAB -->
+        <section id="tab-home" class="tab-content space-y-8 animate-fadeIn">
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-brand-900 via-brand-800 to-emerald-900 text-white p-8 sm:p-12 shadow-2xl">
+                <div class="absolute -right-20 -bottom-20 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/30 text-brand-200 text-xs font-semibold mb-4 border border-brand-400/20">
+                        <i class="fas fa-award"></i> <span data-i18n="hero_tag">«Адал азамат» бағдарламасы</span>
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight mb-4" data-i18n="hero_title">
+                        «Өнегелі 15 минут»
+                    </h2>
+                    <p class="text-brand-100 text-base sm:text-lg mb-8 leading-relaxed" data-i18n="hero_desc">
+                        Жасанды интеллект арқылы тәрбие сағаттарын, қызықты тапсырмалар мен тесттерді лезде дайындаңыз. Мұғалімдерге, оқушыларға және ата-аналарға арналған бірыңғай цифрлық ассистент.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="switchTab('quick15')" class="px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-lg shadow-amber-500/30 transition-all flex items-center space-x-2">
+                            <i class="fas fa-stopwatch"></i> <span data-i18n="hero_btn_quick">15 минуттық сабақ құру</span>
+                        </button>
+                        <button onclick="switchTab('chat')" class="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition-all flex items-center space-x-2 backdrop-blur-md">
+                            <i class="fas fa-robot"></i> <span data-i18n="hero_btn_chat">AI Ассистентпен сөйлесу</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Cards Grid -->
+            <div>
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-slate-900" data-i18n="features_title">Негізгі мүмкіндіктер</h3>
+                    <span class="text-xs text-slate-500 font-medium" data-i18n="features_sub">Барлық бөлімдер жұмыс істеп тұр</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Card 1 -->
+                    <div onclick="switchTab('chat')" class="group bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-brand-500/50 transition-all cursor-pointer">
+                        <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900 mb-1" data-i18n="card_chat_title">AI Чат-Ассистент</h4>
+                        <p class="text-slate-500 text-xs leading-relaxed" data-i18n="card_chat_desc">Кез келген сұраққа қазақ және орыс тілдерінде нақты жауап алыңыз.</p>
+                    </div>
+                    <!-- Card 2 -->
+                    <div onclick="switchTab('quick15')" class="group bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-amber-500/50 transition-all cursor-pointer">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-stopwatch"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900 mb-1" data-i18n="card_quick_title">15 минуттық сабақ</h4>
+                        <p class="text-slate-500 text-xs leading-relaxed" data-i18n="card_quick_desc">Бір батырмамен толық тәрбие сағаты құрылымын генерациялаңыз.</p>
+                    </div>
+                    <!-- Card 3 -->
+                    <div onclick="switchTab('tasks')" class="group bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-kazakh-blue/50 transition-all cursor-pointer">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-50 text-kazakh-blue flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-pen-to-square"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900 mb-1" data-i18n="card_task_title">Тапсырма генераторы</h4>
+                        <p class="text-slate-500 text-xs leading-relaxed" data-i18n="card_task_desc">Сынып пен құндылыққа сай жеке немесе топтық тапсырмалар.</p>
+                    </div>
+                    <!-- Card 4 -->
+                    <div onclick="switchTab('tests')" class="group bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-purple-500/50 transition-all cursor-pointer">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-clipboard-question"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900 mb-1" data-i18n="card_test_title">Тест генераторы</h4>
+                        <p class="text-slate-500 text-xs leading-relaxed" data-i18n="card_test_desc">Интерактивті тесттер құрып, білімді автоматты тексеріңіз.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role-based tailored suggestions banner -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <div class="inline-block px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-xs font-semibold mb-2" id="role-banner-tag">Мұғалім режимі</div>
+                    <h3 class="text-2xl font-bold mb-2" id="role-banner-title">Сыныбыңызға арналған дайын ұсыныстар</h3>
+                    <p class="text-slate-300 text-sm max-w-xl" id="role-banner-desc">«Адал азамат» тәрбие сағаттарын өткізуге арналған сценарийлер пен дескрипторларды бірден алыңыз.</p>
+                </div>
+                <button onclick="switchTab('chat'); promptFromBanner('Мұғалімге 5-сыныпқа адалдық туралы 15 минуттық тәрбие сағаты сценарийін жаса')" class="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg transition-all whitespace-nowrap">
+                    <span data-i18n="banner_btn">AI көмегімен жасау</span> <i class="fas fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. AI CHAT TAB -->
+        <section id="tab-chat" class="tab-content hidden h-[calc(100vh-12rem)] flex flex-col bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden animate-fadeIn">
+            <!-- Chat Header -->
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-lg">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm sm:text-base" data-i18n="chat_header_title">Өнегелі AI Ассистент</h3>
+                        <p class="text-xs text-brand-600 font-medium flex items-center">
+                            <span class="w-2 h-2 rounded-full bg-brand-500 inline-block mr-1.5 animate-pulse"></span>
+                            <span data-i18n="chat_header_status">Қосылған • Қазақ және орыс тілдерінде</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="clearChat()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition-all">
+                        <i class="fas fa-trash-can mr-1"></i> <span data-i18n="chat_clear">Тазарту</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Messages Box -->
+            <div id="chat-messages" class="flex-1 p-6 overflow-y-auto space-y-4 custom-scrollbar bg-slate-50/50">
+                <!-- Welcome AI Message -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center text-sm flex-shrink-0 mt-1">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl rounded-tl-none p-4 shadow-sm max-w-2xl text-sm text-slate-800">
+                        <p class="font-semibold text-brand-700 mb-1">Сәлеметсіз бе! 👋</p>
+                        <p data-i18n="chat_welcome_msg">Мен «Өнегелі 15 минут» жобасының AI ассистентімін. Маған кез келген сұрақ қойыңыз немесе тәрбие сағатына тапсырма, тест, сценарий сұраңыз. Мысалы:</p>
+                        <ul class="mt-2 space-y-1 text-xs text-slate-600 list-disc list-inside">
+                            <li>«5-сыныпқа адалдық туралы 15 минуттық тапсырма жаса»</li>
+                            <li>«Ата-ана мен балаға арналған ұлттық құндылық бойынша тапсырма бер»</li>
+                            <li>«7-сыныпқа 5 сұрақтан тұратын тест жаса»</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suggested Prompt Chips -->
+            <div class="px-6 py-2 bg-white border-t border-slate-100 flex items-center space-x-2 overflow-x-auto custom-scrollbar">
+                <span class="text-xs font-bold text-slate-400 whitespace-nowrap"><i class="fas fa-lightbulb text-amber-500 mr-1"></i> Үлгілер:</span>
+                <button onclick="sendPresetPrompt('5-сыныпқа адалдық туралы 15 минуттық сабақ жаса')" class="px-3 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 text-xs rounded-full whitespace-nowrap transition-all border border-slate-200">
+                    5-сыныпқа адалдық сабағы
+                </button>
+                <button onclick="sendPresetPrompt('Отбасы құндылықтары туралы жағдаяттық тапсырма бер')" class="px-3 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 text-xs rounded-full whitespace-nowrap transition-all border border-slate-200">
+                    Отбасылық жағдаят
+                </button>
+                <button onclick="sendPresetPrompt('7-сыныпқа 5 сұрақтық тест құр')" class="px-3 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 text-xs rounded-full whitespace-nowrap transition-all border border-slate-200">
+                    7-сынып тесті
+                </button>
+            </div>
+
+            <!-- Chat Input Bar -->
+            <div class="p-4 bg-white border-t border-slate-200">
+                <form id="chat-form" onsubmit="handleChatSubmit(event)" class="flex items-center space-x-2">
+                    <input type="text" id="chat-input" placeholder="Сұрағыңызды жазыңыз немесе тапсырма сұраңыз..." class="flex-1 px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                    <button type="submit" id="chat-send-btn" class="px-5 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-all shadow-md shadow-brand-600/20 flex items-center justify-center">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 3. QUICK 15-MINUTE LESSON GENERATOR TAB -->
+        <section id="tab-quick15" class="tab-content hidden space-y-6 animate-fadeIn">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-600 rounded-3xl p-8 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-white/25 text-white text-xs font-semibold mb-2 inline-block">
+                        <i class="fas fa-stopwatch mr-1"></i> Жылдам генератор
+                    </span>
+                    <h2 class="text-3xl font-extrabold mb-2" data-i18n="q15_title">«15 минуттық тәрбие сағатын» бір батырмамен жасау</h2>
+                    <p class="text-amber-100 text-sm max-w-xl" data-i18n="q15_desc">Сынып пен тақырыпты таңдап, AI арқылы толық құрылымдалған 15 минуттық сабақ жоспарын алыңыз.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Controls Card -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-900 text-lg" data-i18n="q15_params">Сабақ параметрлері</h3>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Сынып / Класс</label>
+                        <select id="q15-grade" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none">
+                            <option value="1-4">1-4 сыныптар (Бастауыш)</option>
+                            <option value="5-8" selected>5-8 сыныптар (Орта буын)</option>
+                            <option value="9-11">9-11 сыныптар (Жоғары буын)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Негізгі құндылық / Ценность</label>
+                        <select id="q15-value" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none">
+                            <option value="Адалдық">Адалдық (Честность)</option>
+                            <option value="Еңбекқорлық">Еңбекқорлық (Трудолюбие)</option>
+                            <option value="Отбасы">Отбасы және дәстүр (Семья)</option>
+                            <option value="Отаншылдық">Отаншылдық (Патриотизм)</option>
+                            <option value="Заң және тәртіп">Заң және тәртіп (Закон и порядок)</option>
+                            <option value="Мейірімділік">Мейірімділік (Доброта)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Тақырып атауы / Тема</label>
+                        <input type="text" id="q15-topic" value="Адал еңбек — бақыт бастауы" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none">
+                    </div>
+                    <button onclick="generateQuick15()" class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center space-x-2">
+                        <i class="fas fa-wand-magic-sparkles"></i> <span data-i18n="q15_btn">15 минуттық сабақ жасау</span>
+                    </button>
+                </div>
+
+                <!-- Result Display Card -->
+                <div class="lg:col-span-2 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+                            <h3 class="font-bold text-slate-900 text-lg flex items-center">
+                                <i class="fas fa-file-lines text-amber-500 mr-2"></i> <span data-i18n="q15_res_title">Дайын сабақ сценарийі</span>
+                            </h3>
+                            <button onclick="copyQuick15Result()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-all">
+                                <i class="fas fa-copy mr-1"></i> <span data-i18n="copy_btn">Көшіру</span>
+                            </button>
+                        </div>
+                        <div id="q15-result-content" class="space-y-4 text-sm text-slate-700">
+                            <div class="text-center py-16 text-slate-400">
+                                <i class="fas fa-stopwatch text-4xl mb-3 text-slate-300"></i>
+                                <p data-i18n="q15_placeholder">Солдағы параметрлерді таңдап, батырманы басыңыз</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. TASK GENERATOR TAB -->
+        <section id="tab-tasks" class="tab-content hidden space-y-6 animate-fadeIn">
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-kazakh-blue flex items-center justify-center text-xl">
+                        <i class="fas fa-pen-to-square"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900" data-i18n="task_title">Тапсырма Генераторы</h2>
+                        <p class="text-slate-500 text-sm" data-i18n="task_desc">Сыныпқа немесе ата-ана мен балаға арналған түрлі форматтағы тапсырмалар жасаңыз</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Сынып / Класс</label>
+                        <select id="task-grade" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-cyan-500 outline-none">
+                            <option value="3-сынып">3-сынып</option>
+                            <option value="5-сынып" selected>5-сынып</option>
+                            <option value="7-сынып">7-сынып</option>
+                            <option value="9-сынып">9-сынып</option>
+                            <option value="11-сынып">11-сынып</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Тапсырма түрі / Вид</label>
+                        <select id="task-type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-cyan-500 outline-none">
+                            <option value="Жағдаяттық тапсырма">Жағдаяттық тапсырма (Ситуационная)</option>
+                            <option value="Топтық жұмыс">Топтық жұмыс (Групповая)</option>
+                            <option value="Шығармашылық тапсырма">Шығармашылық (Творческая)</option>
+                            <option value="Пікірталас сұрақтары">Пікірталас (Дискуссия)</option>
+                            <option value="Отбасылық тапсырма">Отбасылық бірлескен тапсырма</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Құндылық / Ценность</label>
+                        <select id="task-val" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-cyan-500 outline-none">
+                            <option value="Адалдық">Адалдық</option>
+                            <option value="Еңбекқорлық">Еңбекқорлық</option>
+                            <option value="Құрмет">Құрмет және сыйластық</option>
+                            <option value="Заң және тәртіп">Заң және тәртіп</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Тілі / Язык</label>
+                        <select id="task-lang" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-cyan-500 outline-none">
+                            <option value="kk">Қазақша</option>
+                            <option value="ru">Русский</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="generateCustomTask()" class="w-full py-3.5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl shadow-lg shadow-cyan-600/25 transition-all flex items-center justify-center space-x-2">
+                    <i class="fas fa-wand-magic-sparkles"></i> <span data-i18n="task_btn">Тапсырманы генерациялау</span>
+                </button>
+            </div>
+
+            <!-- Task Output Container -->
+            <div id="task-output-card" class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hidden">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                    <h3 class="font-bold text-slate-900 text-lg flex items-center">
+                        <i class="fas fa-list-check text-kazakh-blue mr-2"></i> Нәтиже
+                    </h3>
+                    <button onclick="copyElementText('task-output-body')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">
+                        <i class="fas fa-copy mr-1"></i> Көшіру
+                    </button>
+                </div>
+                <div id="task-output-body" class="prose text-slate-700 text-sm space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- 5. TEST GENERATOR TAB -->
+        <section id="tab-tests" class="tab-content hidden space-y-6 animate-fadeIn">
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-clipboard-question"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900" data-i18n="test_title">Тест Генераторы</h2>
+                        <p class="text-slate-500 text-sm" data-i18n="test_desc">Интерактивті тест құрып, оқушылардың білімін автоматты түрде тексеріңіз</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Сынып / Класс</label>
+                        <select id="test-grade" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="5-сынып">5-сынып</option>
+                            <option value="7-сынып" selected>7-сынып</option>
+                            <option value="9-сынып">9-сынып</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Тақырып / Тема</label>
+                        <input type="text" id="test-topic" value="Адалдық және ар-ұят" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Сұрақ саны / Вопросов</label>
+                        <select id="test-count" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="3">3 сұрақ</option>
+                            <option value="5" selected>5 сұрақ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="generateQuiz()" class="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg shadow-purple-600/25 transition-all flex items-center justify-center space-x-2">
+                    <i class="fas fa-wand-magic-sparkles"></i> <span data-i18n="test_btn">Тестті құру және бастау</span>
+                </button>
+            </div>
+
+            <!-- Quiz Interactive Area -->
+            <div id="quiz-container" class="hidden bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <h3 id="quiz-header-title" class="font-bold text-slate-900 text-lg">Тест тапсыру</h3>
+                    <span id="quiz-progress" class="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-full">1 / 5</span>
+                </div>
+                <div id="quiz-question-box" class="space-y-4">
+                    <!-- Dynamic Question -->
+                </div>
+                <div id="quiz-actions" class="flex justify-end">
+                    <button onclick="nextQuizQuestion()" id="quiz-next-btn" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow transition-all">Келесі</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. VIDEO LIBRARY TAB -->
+        <section id="tab-videos" class="tab-content hidden space-y-6 animate-fadeIn">
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl">
+                            <i class="fas fa-film"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900" data-i18n="video_title">Бейнетека 🎬</h2>
+                            <p class="text-slate-500 text-sm" data-i18n="video_desc">«Өнегелі 15 минут» жобасына арналған 50 таңдаулы бейнематериал</p>
+                        </div>
+                    </div>
+                    <!-- Search & Filter -->
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="video-search" oninput="filterVideos()" placeholder="Іздеу (тақырып, сынып...)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                    </div>
+                </div>
+
+                <!-- Video Table / Grid -->
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                                <th class="py-3 px-4">№</th>
+                                <th class="py-3 px-4">Бейне атауы</th>
+                                <th class="py-3 px-4">Сынып</th>
+                                <th class="py-3 px-4">Құндылық</th>
+                                <th class="py-3 px-4 text-right">YouTube</th>
+                            </tr>
+                        </thead>
+                        <tbody id="video-table-body" class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. VALUES TAB -->
+        <section id="tab-values" class="tab-content hidden space-y-6 animate-fadeIn">
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900" data-i18n="values_title">Құндылықтар Бағыты</h2>
+                        <p class="text-slate-500 text-sm" data-i18n="values_desc">«Адал азамат» бағдарламасының негізгі 15 бағыты мен құндылықтары</p>
+                    </div>
+                </div>
+
+                <div id="values-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. FEEDBACK TAB -->
+        <section id="tab-feedback" class="tab-content hidden space-y-6 animate-fadeIn">
+            <div class="max-w-xl mx-auto bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="text-center mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl mx-auto mb-3">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900" data-i18n="fb_title">Кері байланыс</h2>
+                    <p class="text-slate-500 text-sm mt-1" data-i18n="fb_desc">Жобаны жақсартуға өз үлесіңізді қосыңыз</p>
+                </div>
+
+                <form onsubmit="submitFeedback(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Бағалау / Оценка (1-5)</label>
+                        <div class="flex space-x-2 text-2xl text-amber-400 cursor-pointer" id="star-rating">
+                            <i class="fas fa-star" onclick="setRating(1)"></i>
+                            <i class="fas fa-star" onclick="setRating(2)"></i>
+                            <i class="fas fa-star" onclick="setRating(3)"></i>
+                            <i class="fas fa-star" onclick="setRating(4)"></i>
+                            <i class="fas fa-star" onclick="setRating(5)"></i>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Рөліңіз / Роль</label>
+                            <select id="fb-role" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
+                                <option value="Мұғалім">Мұғалім</option>
+                                <option value="Оқушы">Оқушы</option>
+                                <option value="Ата-ана">Ата-ана</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Түрі / Тип</label>
+                            <select id="fb-type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
+                                <option value="Ұсыныс">Ұсыныс</option>
+                                <option value="Қате туралы хабарлау">Қате туралы</option>
+                                <option value="Тапсырмаға пікір">Тапсырмаға пікір</option>
+                                <option value="Чатбот бағасы">Чатбот жұмысы</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Пікіріңіз / Отзыв</label>
+                        <textarea id="fb-text" rows="4" required placeholder="Өз ұсыныстарыңызды жазыңыз..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/20 transition-all">
+                        <span data-i18n="fb_submit">Жіберу</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Global State
+        let currentLang = 'kk';
+        let currentRole = 'teacher';
+        let currentRating = 5;
+        let chatHistory = [];
+        let currentQuizData = null;
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+
+        // 50 Initial Videos Database
+        const videoDatabase = [
+            { id: 1, title: "Домбыра үйрену – 1-сабақ: құрылысы және дұрыс отыру", grade: "1–11", value: "Ұлттық мұра, өнер", url: "https://www.youtube.com/results?search_query=домбыра+үйрену+1+сабақ" },
+            { id: 2, title: "Домбыра үйрену – құлағын дұрыстау, жаттығу", grade: "3–11", value: "Ұлттық өнер, еңбек", url: "https://www.youtube.com/results?search_query=домбыра+құлағын+дұрыстау" },
+            { id: 3, title: "Домбыра үйрену. 1-ші сабақ", grade: "3–11", value: "Ұлттық мәдениет", url: "https://www.youtube.com/results?search_query=домбыра+үйрену+1+сабақ" },
+            { id: 4, title: "Тоғызқұмалақ курсы – 1 сабақ", grade: "3–11", value: "Ұлттық ойын, ойлау", url: "https://www.youtube.com/results?search_query=тоғызқұмалақ+курсы+1+сабақ" },
+            { id: 5, title: "Тоғызқұмалақ ойынын үйрену – 1-сабақ", grade: "3–7", value: "Ұлттық мұра, логика", url: "https://www.youtube.com/results?search_query=тоғызқұмалақ+ойынын+үйрену" },
+            { id: 6, title: "Бала тәрбиесіне қатысты қазақтың салт-дәстүрлері", grade: "1–11", value: "Отбасы, салт-дәстүр", url: "https://www.youtube.com/results?search_query=қазақтың+салт+дәстүрлері+бала+тәрбиесі" },
+            { id: 7, title: "Қазақтың «Сырға салу» дәстүрі қалай өтеді?", grade: "5–11", value: "Ұлттық дәстүр, отбасы", url: "https://www.youtube.com/results?search_query=сырға+салу+дәстүрі" },
+            { id: 8, title: "«Заң және тәртіп» – балаларға арналған мультфильм", grade: "1–4", value: "Заң, тәртіп", url: "https://www.youtube.com/results?search_query=заң+және+тәртіп+балаларға" },
+            { id: 9, title: "«Заң және тәртіп: балалардың көзқарасымен»", grade: "5–11", value: "Құқықтық сауаттылық, жауапкершілік", url: "https://www.youtube.com/results?search_query=заң+және+тәртіп+оқушыларға" },
+            { id: 10, title: "Домбыраның құрылысы", grade: "1–6", value: "Ұлттық аспап", url: "https://www.youtube.com/results?search_query=домбыраның+құрылысы" },
+            { id: 11, title: "Домбырада дұрыс отыру және аспапты ұстау", grade: "1–6", value: "Ұқыптылық, өнер", url: "https://www.youtube.com/results?search_query=домбырада+дұрыс+отыру" },
+            { id: 12, title: "Домбыра қағыстарын үйрену", grade: "3–11", value: "Еңбек, табандылық", url: "https://www.youtube.com/results?search_query=домбыра+қағыстары" },
+            { id: 13, title: "Тоғызқұмалақтың негізгі ережелері", grade: "3–11", value: "Сабыр, логика", url: "https://www.youtube.com/results?search_query=тоғызқұмалақ+ережелері" },
+            { id: 14, title: "Тоғызқұмалақ – ұлттық зияткерлік ойын", grade: "3–11", value: "Зияткерлік даму", url: "https://www.youtube.com/results?search_query=тоғызқұмалақ+ұлттық+ойын" },
+            { id: 15, title: "Қазақ салт-дәстүрлері – бала тәрбиесі", grade: "1–11", value: "Ұлттық тәрбие", url: "https://www.youtube.com/results?search_query=қазақ+салт+дәстүрлері+тәрбие" },
+            { id: 16, title: "Салт-дәстүр – ұрпақ тәрбиесі", grade: "5–11", value: "Ұлттық құндылық", url: "https://www.youtube.com/results?search_query=салт+дәстүр+ұрпақ+тәрбиесі" },
+            { id: 17, title: "Сырға салу дәстүрі", grade: "5–11", value: "Отбасы, дәстүр", url: "https://www.youtube.com/results?search_query=сырға+салу+дәстүрі" },
+            { id: 18, title: "Қазақ халқының дәстүрлері", grade: "3–11", value: "Дәстүрді сақтау", url: "https://www.youtube.com/results?search_query=қазақ+халқының+дәстүрлері" },
+            { id: 19, title: "Домбыра – қазақтың қасиетті аспабы", grade: "1–11", value: "Ұлттық сана", url: "https://www.youtube.com/results?search_query=домбыра+қасиетті+аспап" },
+            { id: 20, title: "Күй өнеріне алғашқы қадам", grade: "3–11", value: "Өнер, еңбек", url: "https://www.youtube.com/results?search_query=күй+өнеріне+алғашқы+қадам" },
+            { id: 21, title: "Қазақтың ою-өрнектері және мағынасы", grade: "1–11", value: "Ұлттық мұра", url: "https://www.youtube.com/results?search_query=қазақтың+ою+өрнектері" },
+            { id: 22, title: "Ою-өрнек салуды үйрену", grade: "1–6", value: "Еңбек, шығармашылық", url: "https://www.youtube.com/results?search_query=ою+өрнек+салуды+үйрену" },
+            { id: 23, title: "Қазақтың ұлттық киімдері", grade: "1–6", value: "Ұлттық мәдениет", url: "https://www.youtube.com/results?search_query=қазақтың+ұлттық+киімдері" },
+            { id: 24, title: "Қазақтың ұлттық ойындары", grade: "1–6", value: "Дәстүр, бірлік", url: "https://www.youtube.com/results?search_query=қазақтың+ұлттық+ойындары" },
+            { id: 25, title: "Асық ойыны – ұлттық мұра", grade: "1–7", value: "Ұлттық спорт", url: "https://www.youtube.com/results?search_query=асық+ойыны+ұлттық+мұра" },
+            { id: 26, title: "Арқан тарту ойыны", grade: "1–7", value: "Бірлік, достық", url: "https://www.youtube.com/results?search_query=арқан+тарту+ойыны" },
+            { id: 27, title: "Бес асық ойыны", grade: "3–7", value: "Ұлттық ойын", url: "https://www.youtube.com/results?search_query=бес+асық+ойыны" },
+            { id: 28, title: "Қазақтың ұлттық тағамдары", grade: "1–6", value: "Дәстүр, отбасы", url: "https://www.youtube.com/results?search_query=қазақтың+ұлттық+тағамдары" },
+            { id: 29, title: "Шаңырақ – отбасы символы", grade: "1–11", value: "Отбасы", url: "https://www.youtube.com/results?search_query=шаңырақ+отбасы+символы" },
+            { id: 30, title: "Отбасы – тәрбие бастауы", grade: "1–11", value: "Отбасы құндылығы", url: "https://www.youtube.com/results?search_query=отбасы+тәрбие+бастауы" },
+            { id: 31, title: "Ата-ананы құрметтеу", grade: "1–11", value: "Құрмет", url: "https://www.youtube.com/results?search_query=ата+ананы+құрметтеу" },
+            { id: 32, title: "Үлкенге құрмет, кішіге ізет", grade: "1–9", value: "Сыйластық", url: "https://www.youtube.com/results?search_query=үлкенге+құрмет+кішіге+ізет" },
+            { id: 33, title: "Адамгершілік дегеніміз не?", grade: "1–9", value: "Адамгершілік", url: "https://www.youtube.com/results?search_query=адамгершілік+дегеніміз+не" },
+            { id: 34, title: "Мейірімділік пен қайырымдылық", grade: "1–7", value: "Мейірімділік", url: "https://www.youtube.com/results?search_query=мейірімділік+пен+қайырымдылық" },
+            { id: 35, title: "Адалдық туралы мультфильм", grade: "1–6", value: "Адалдық", url: "https://www.youtube.com/results?search_query=адалдық+туралы+мультфильм" },
+            { id: 36, title: "Еңбек – бәрін жеңбек", grade: "1–7", value: "Еңбекқорлық", url: "https://www.youtube.com/results?search_query=еңбек+бәрін+жеңбек" },
+            { id: 37, title: "Адал еңбек – бәрін жеңбек", grade: "5–11", value: "Адал еңбек", url: "https://www.youtube.com/results?search_query=адал+еңбек+бәрін+жеңбек" },
+            { id: 38, title: "Таза Қазақстан – табиғатты қорғау", grade: "1–11", value: "Экологиялық мәдениет", url: "https://www.youtube.com/results?search_query=таза+қазақстан+табиғатты+қорғау" },
+            { id: 39, title: "Қазақстан тарихы: Алтын адам", grade: "4–11", value: "Тарих, патриотизм", url: "https://www.youtube.com/results?search_query=алтын+адам+қазақстан+тарихы" },
+            { id: 40, title: "Қазақ хандығының құрылуы", grade: "5–11", value: "Тарих, елдік", url: "https://www.youtube.com/results?search_query=қазақ+хандығының+құрылуы" },
+            { id: 41, title: "Абай Құнанбайұлы туралы", grade: "5–11", value: "Білім, адамгершілік", url: "https://www.youtube.com/results?search_query=абай+құнанбайұлы+өмірі" },
+            { id: 42, title: "Ахмет Байтұрсынұлы – Ұлт ұстазы", grade: "5–11", value: "Білім, тіл", url: "https://www.youtube.com/results?search_query=ахмет+байтұрсынұлы" },
+            { id: 43, title: "Әлихан Бөкейхан туралы", grade: "7–11", value: "Отаншылдық", url: "https://www.youtube.com/results?search_query=әлихан+бөкейхан" },
+            { id: 44, title: "Қазақ батырлары", grade: "3–11", value: "Ерлік, отаншылдық", url: "https://www.youtube.com/results?search_query=қазақ+батырлары" },
+            { id: 45, title: "Туған жер – алтын бесігім", grade: "1–11", value: "Патриотизм", url: "https://www.youtube.com/results?search_query=туған+жер+алтын+бесігім" },
+            { id: 46, title: "Мемлекеттік рәміздер", grade: "1–11", value: "Отаншылдық", url: "https://www.youtube.com/results?search_query=қазақстан+республикасының+рәміздері" },
+            { id: 47, title: "Баланың құқықтары мен міндеттері", grade: "5–11", value: "Заң және тәртіп", url: "https://www.youtube.com/results?search_query=баланың+құқықтары+мен+міндеттері" },
+            { id: 48, title: "Жолда жүру ережелері", grade: "1–6", value: "Қауіпсіздік, тәртіп", url: "https://www.youtube.com/results?search_query=жолда+жүру+ережелері+балаларға" },
+            { id: 49, title: "Киберқауіпсіздік және интернет мәдениеті", grade: "5–11", value: "Жауапкершілік", url: "https://www.youtube.com/results?search_query=киберқауіпсіздік+оқушыларға" },
+            { id: 50, title: "Достық және өзара құрмет", grade: "1–9", value: "Достық, сыйластық", url: "https://www.youtube.com/results?search_query=достық+және+өзара+құрмет" }
+        ];
+
+        // 15 Values
+        const valuesList = [
+            { title: "Адалдық", desc: "Шыншылдық, әділдік пен ар-ұятты жоғары ұстау.", icon: "fa-scale-balanced" },
+            { title: "Еңбекқорлық", desc: "Еңбекті құрметтеу, табандылық пен кәсібилік.", icon: "fa-hammer" },
+            { title: "Отбасы", desc: "Отбасылық құндылықтар, ата-ананы сыйлау.", icon: "fa-house-chimney-user" },
+            { title: "Отаншылдық", desc: "Туған жерді сүю, ел патриоты болу.", icon: "fa-flag" },
+            { title: "Құрмет", desc: "Үлкенді сыйлау, кішіге ізет көрсету.", icon: "fa-hands-clapping" },
+            { title: "Мейірімділік", desc: "Қайырымдылық, адамдарға көмек көрсету.", icon: "fa-heart" },
+            { title: "Достық", desc: "Өзара сыйластық, сенім және татулық.", icon: "fa-users" },
+            { title: "Ұлттық құндылықтар", desc: "Салт-дәстүрді, ана тілін ардақтау.", icon: "fa-landmark" },
+            { title: "Заң және тәртіп", desc: "Құқықтық мәдениет, тәртіпті сақтау.", icon: "fa-scale-unbalanced" },
+            { title: "Таза Қазақстан", desc: "Экологиялық мәдениет, табиғатты қорғау.", icon: "fa-seedling" },
+            { title: "Қауіпсіздік", desc: "Жеке және киберқауіпсіздік ережелері.", icon: "fa-shield-halved" },
+            { title: "Жауапкершілік", desc: "Әрбір іске саналы қарау, жауапкершілік.", icon: "fa-clipboard-check" },
+            { title: "Білім", desc: "Ғылымға құштарлық, кітап оқу мәдениеті.", icon: "fa-book-bookmark" },
+            { title: "Ұлттық мәдениет", desc: "Өнерді, домбыра мен күйді дәріптеу.", icon: "fa-music" },
+            { title: "Патриотизм", desc: "Ел болашағы үшін аянбай қызмет ету.", icon: "fa-earth-asia" }
+        ];
+
+        // Dictionary for UI Translations
+        const i18n = {
+            kk: {
+                nav_home: "Басты бет",
+                nav_chat: "AI Ассистент",
+                nav_quick: "15 мин сабақ",
+                nav_tasks: "Тапсырма",
+                nav_tests: "Тест",
+                nav_videos: "Бейнетека",
+                nav_values: "Құндылықтар",
+                nav_feedback: "Кері байланыс",
+                hero_tag: "«Адал азамат» бағдарламасы",
+                hero_title: "«Өнегелі 15 минут»",
+                hero_desc: "Жасанды интеллект арқылы тәрбие сағаттарын, қызықты тапсырмалар мен тесттерді лезде дайындаңыз. Мұғалімдерге, оқушыларға және ата-аналарға арналған бірыңғай цифрлық ассистент.",
+                hero_btn_quick: "15 минуттық сабақ құру",
+                hero_btn_chat: "AI Ассистентпен сөйлесу",
+                features_title: "Негізгі мүмкіндіктер",
+                features_sub: "Барлық бөлімдер жұмыс істеп тұр",
+                card_chat_title: "AI Чат-Ассистент",
+                card_chat_desc: "Кез келген сұраққа қазақ және орыс тілдерінде нақты жауап алыңыз.",
+                card_quick_title: "15 минуттық сабақ",
+                card_quick_desc: "Бір батырмамен толық тәрбие сағаты құрылымын генерациялаңыз.",
+                card_task_title: "Тапсырма генераторы",
+                card_task_desc: "Сынып пен құндылыққа сай жеке немесе топтық тапсырмалар.",
+                card_test_title: "Тест генераторы",
+                card_test_desc: "Интерактивті тесттер құрып, білімді автоматты тексеріңіз.",
+                chat_header_title: "Өнегелі AI Ассистент",
+                chat_header_status: "Қосылған • Қазақ және орыс тілдерінде",
+                chat_clear: "Тазарту",
+                chat_welcome_msg: "Мен «Өнегелі 15 минут» жобасының AI ассистентімін. Маған кез келген сұрақ қойыңыз немесе тәрбие сағатына тапсырма, тест, сценарий сұраңыз.",
+                q15_title: "«15 минуттық тәрбие сағатын» бір батырмамен жасау",
+                q15_desc: "Сынып пен тақырыпты таңдап, AI арқылы толық құрылымдалған 15 минуттық сабақ жоспарын алыңыз.",
+                q15_params: "Сабақ параметрлері",
+                q15_btn: "15 минуттық сабақ жасау",
+                q15_res_title: "Дайын сабақ сценарийі",
+                q15_placeholder: "Солдағы параметрлерді таңдап, батырманы басыңыз",
+                task_title: "Тапсырма Генераторы",
+                task_desc: "Сыныпқа немесе ата-ана мен балаға арналған түрлі форматтағы тапсырмалар жасаңыз",
+                task_btn: "Тапсырманы генерациялау",
+                test_title: "Тест Генераторы",
+                test_desc: "Интерактивті тест құрып, оқушылардың білімін автоматты түрде тексеріңіз",
+                test_btn: "Тестті құру және бастау",
+                video_title: "Бейнетека 🎬",
+                video_desc: "«Өнегелі 15 минут» жобасына арналған 50 таңдаулы бейнематериал",
+                values_title: "Құндылықтар Бағыты",
+                values_desc: "«Адал азамат» бағдарламасының негізгі 15 бағыты мен құндылықтары",
+                fb_title: "Кері байланыс",
+                fb_desc: "Жобаны жақсартуға өз үлесіңізді қосыңыз",
+                fb_submit: "Жіберу",
+                copy_btn: "Көшіру",
+                banner_btn: "AI көмегімен жасау"
+            },
+            ru: {
+                nav_home: "Главная",
+                nav_chat: "AI Ассистент",
+                nav_quick: "15 мин урок",
+                nav_tasks: "Задания",
+                nav_tests: "Тесты",
+                nav_videos: "Видеотека",
+                nav_values: "Ценности",
+                nav_feedback: "Обратная связь",
+                hero_tag: "Программа «Адал азамат»",
+                hero_title: "«Өнегелі 15 минут»",
+                hero_desc: "Мгновенно создавайте воспитательные часы, интересные задания и тесты с помощью искусственного интеллекта. Единый цифровой ассистент для учителей, учеников и родителей.",
+                hero_btn_quick: "Создать урок за 15 минут",
+                hero_btn_chat: "Чат с AI Ассистентом",
+                features_title: "Основные возможности",
+                features_sub: "Все разделы полностью активны",
+                card_chat_title: "AI Чат-Ассистент",
+                card_chat_desc: "Получайте точные ответы на любые вопросы на казахском и русском языках.",
+                card_quick_title: "Урок за 15 минут",
+                card_quick_desc: "Генерируйте структуру воспитательного часа в один клик.",
+                card_task_title: "Генератор заданий",
+                card_task_desc: "Индивидуальные или групповые задания под класс и ценности.",
+                card_test_title: "Генератор тестов",
+                card_test_desc: "Создавайте интерактивные тесты для проверки знаний.",
+                chat_header_title: "Өнегелі AI Ассистент",
+                chat_header_status: "Подключен • На казахском и русском",
+                chat_clear: "Очистить",
+                chat_welcome_msg: "Я AI ассистент проекта «Өнегелі 15 минут». Задайте мне любой вопрос или запросите сценарий урока, задание, тест.",
+                q15_title: "Создание «Воспитательного часа на 15 минут» в один клик",
+                q15_desc: "Выберите класс и тему, чтобы получить полностью структурированный план урока с помощью AI.",
+                q15_params: "Параметры урока",
+                q15_btn: "Создать урок за 15 минут",
+                q15_res_title: "Готовый сценарий урока",
+                q15_placeholder: "Выберите параметры слева и нажмите кнопку",
+                task_title: "Генератор Заданий",
+                task_desc: "Создавайте разнообразные задания для класса или совместные для родителей и детей",
+                task_btn: "Генерировать задание",
+                test_title: "Генератор Тестов",
+                test_desc: "Создавайте интерактивные тесты и проверяйте знания автоматически",
+                test_btn: "Создать и начать тест",
+                video_title: "Видеотека 🎬",
+                video_desc: "50 отборных видеоматериалов для проекта «Өнегелі 15 минут»",
+                values_title: "Направление Ценностей",
+                values_desc: "15 основных направлений и ценностей программы «Адал азамат»",
+                fb_title: "Обратная связь",
+                fb_desc: "Помогите нам улучшить проект своими отзывами",
+                fb_submit: "Отправить",
+                copy_btn: "Копировать",
+                banner_btn: "Создать с помощью AI"
+            }
+        };
+
+        // Initialize App on Load
+        window.onload = function() {
+            renderVideos(videoDatabase);
+            renderValues();
+            updateTexts();
+            // Show setup modal on start
+            document.getElementById('setup-modal').classList.remove('hidden');
+        };
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('bg-brand-50', 'text-brand-600', 'font-bold');
+            });
+            const activeNav = document.querySelector(`[data-tab="${tabId}"]`);
+            if(activeNav) {
+                activeNav.classList.add('bg-brand-50', 'text-brand-600', 'font-bold');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Language Switcher
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('lang-kk').className = lang === 'kk' ? "px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm" : "px-2.5 py-1 rounded-lg text-xs font-medium transition-all text-slate-600 hover:text-slate-900";
+            document.getElementById('lang-ru').className = lang === 'ru' ? "px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm" : "px-2.5 py-1 rounded-lg text-xs font-medium transition-all text-slate-600 hover:text-slate-900";
+
+            document.getElementById('lang-btn-kk').className = lang === 'kk' ? "py-3 px-4 rounded-xl border-2 font-medium text-sm flex items-center justify-center space-x-2 transition-all border-brand-500 bg-brand-50 text-brand-700" : "py-3 px-4 rounded-xl border-2 font-medium text-sm flex items-center justify-center space-x-2 transition-all border-slate-200 bg-white text-slate-600";
+            document.getElementById('lang-btn-ru').className = lang === 'ru' ? "py-3 px-4 rounded-xl border-2 font-medium text-sm flex items-center justify-center space-x-2 transition-all border-brand-500 bg-brand-50 text-brand-700" : "py-3 px-4 rounded-xl border-2 font-medium text-sm flex items-center justify-center space-x-2 transition-all border-slate-200 bg-white text-slate-600";
+
+            updateTexts();
+            showNotification(lang === 'kk' ? 'Тіл қазақ тіліне ауыстырылды' : 'Язык изменен на русский');
+        }
+
+        function updateTexts() {
+            const dict = i18n[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    el.innerText = dict[key];
+                }
+            });
+        }
+
+        // Role Switcher
+        function setRole(role) {
+            currentRole = role;
+            ['teacher', 'student', 'parent'].forEach(r => {
+                const btn = document.getElementById(`role-btn-${r}`);
+                if (r === role) {
+                    btn.className = "role-card py-4 px-3 rounded-xl border-2 text-center transition-all border-brand-500 bg-brand-50/50 text-brand-800 shadow-sm";
+                } else {
+                    btn.className = "role-card py-4 px-3 rounded-xl border-2 text-center transition-all border-slate-200 bg-white text-slate-600 hover:border-slate-300";
+                }
+            });
+
+            const roleNames = {
+                teacher: currentLang === 'kk' ? 'Мұғалім' : 'Учитель',
+                student: currentLang === 'kk' ? 'Оқушы' : 'Ученик',
+                parent: currentLang === 'kk' ? 'Ата-ана' : 'Родитель'
+            };
+            document.getElementById('current-role-badge').innerText = roleNames[role];
+            
+            // Update Banner details
+            if(role === 'teacher') {
+                document.getElementById('role-banner-tag').innerText = currentLang === 'kk' ? 'Мұғалім режимі' : 'Режим учителя';
+                document.getElementById('role-banner-title').innerText = currentLang === 'kk' ? 'Сыныбыңызға арналған дайын ұсыныстар' : 'Готовые рекомендации для вашего класса';
+                document.getElementById('role-banner-desc').innerText = currentLang === 'kk' ? '«Адал азамат» тәрбие сағаттарын өткізуге арналған сценарийлер пен дескрипторларды бірден алыңыз.' : 'Получите сценарии и дескрипторы для воспитательных часов.';
+            } else if(role === 'student') {
+                document.getElementById('role-banner-tag').innerText = currentLang === 'kk' ? 'Оқушы режимі' : 'Режим ученика';
+                document.getElementById('role-banner-title').innerText = currentLang === 'kk' ? 'Қызықты сұрақтар мен викториналар' : 'Интересные вопросы и викторины';
+                document.getElementById('role-banner-desc').innerText = currentLang === 'kk' ? 'Өз біліміңізді сынап, құндылықтар туралы көбірек біліңіз.' : 'Проверьте свои знания и узнайте больше о ценностях.';
+            } else {
+                document.getElementById('role-banner-tag').innerText = currentLang === 'kk' ? 'Ата-ана режимі' : 'Режим родителя';
+                document.getElementById('role-banner-title').innerText = currentLang === 'kk' ? 'Отбасы мен бала тәрбиесіне кеңестер' : 'Советы по воспитанию и семье';
+                document.getElementById('role-banner-desc').innerText = currentLang === 'kk' ? 'Үй жағдайында баламен әңгімелесуге арналған бірлескен тапсырмалар.' : 'Совместные задания для бесед с ребенком дома.';
+            }
+        }
+
+        function closeSetupModal() {
+            document.getElementById('setup-modal').classList.add('hidden');
+            showNotification(currentLang === 'kk' ? 'Сәтті басталды!' : 'Успешно начато!');
+        }
+
+        function openSetupModal() {
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+
+        // Notification Helper
+        function showNotification(text) {
+            const notif = document.getElementById('notification');
+            document.getElementById('notif-text').innerText = text;
+            notif.classList.remove('translate-x-full');
+            setTimeout(() => {
+                notif.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        // Real Gemini API Integration
+        async function callGeminiAPI(promptText) {
+            const systemInstruction = `You are a specialized AI educational assistant for the "Өнегелі 15 минут" (Meaningful 15 Minutes) project under the "Адал азамат" program in Kazakhstan. 
+User role: ${currentRole} (teacher, student, parent).
+Language preference: ${currentLang} (kk or ru).
+Provide precise, constructive, school-appropriate, and structured responses in markdown format. Tailor your answers to the selected role and language.`;
+
+            const apiKey = ""; // Canvas runtime key injection
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [
+                    ...chatHistory.map(item => ({ role: item.role, parts: [{ text: item.text }] })),
+                    { role: "user", parts: [{ text: promptText }] }
+                ],
+                systemInstruction: {
+                    parts: [{ text: systemInstruction }]
+                }
+            };
+
+            // Exponential backoff retry logic
+            let retries = 3;
+            let delay = 1000;
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error('API Error');
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return candidate.content.parts[0].text;
+                    }
+                } catch (err) {
+                    if (i === retries - 1) {
+                        // Fallback intelligent local response if network fails
+                        return generateLocalFallback(promptText);
+                    }
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+            return generateLocalFallback(promptText);
+        }
+
+        function generateLocalFallback(query) {
+            if(currentLang === 'kk') {
+                return `**«Өнегелі 15 минут» ассистентінің жауабы:**\n\nСұранысыңыз бойынша («${query}») келесі тәрбиелік материал ұсынылады:\n1. **Мақсаты:** Оқушылардың бойына адалдық пен жауапкершілік қасиеттерін сіңіру.\n2. **Негізгі әрекет:** 5 минут тақырыпты талқылау, 7 минут пікірталас сұрақтары, 3 минут рефлексия.\n3. **Ұсынылатын сұрақ:** «Өмірде адал болу не үшін маңызды?»\n\n*Бұл автоматты жауап интернет байланысынсыз немесе API квотасы шектелген жағдайда көрсетілді.*`;
+            } else {
+                return `**Ответ ассистента «Өнегелі 15 минут»:**\n\nПо вашему запросу («${query}») подготовлен следующий воспитательный материал:\n1. **Цель:** Формирование честности и ответственности.\n2. **Ход работы:** 5 минут обсуждение темы, 7 минут дискуссия, 3 минуты рефлексия.\n3. **Вопрос для обсуждения:** «Почему важно быть честным в жизни?»`;
+            }
+        }
+
+        // Chatbot Functionality
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const inputEl = document.getElementById('chat-input');
+            const text = inputEl.value.trim();
+            if(!text) return;
+
+            inputEl.value = '';
+            appendMessage('user', text);
+            chatHistory.push({ role: 'user', text: text });
+
+            // Show typing indicator
+            const typingId = showTypingIndicator();
+
+            const aiResponse = await callGeminiAPI(text);
+            removeTypingIndicator(typingId);
+            appendMessage('model', aiResponse);
+            chatHistory.push({ role: 'model', text: aiResponse });
+        }
+
+        function sendPresetPrompt(text) {
+            switchTab('chat');
+            document.getElementById('chat-input').value = text;
+        }
+
+        function promptFromBanner(text) {
+            document.getElementById('chat-input').value = text;
+            switchTab('chat');
+        }
+
+        function appendMessage(role, text) {
+            const container = document.getElementById('chat-messages');
+            const isUser = role === 'user';
+            
+            const div = document.createElement('div');
+            div.className = `flex items-start space-x-3 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`;
+            
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-lg ${isUser ? 'bg-slate-700' : 'bg-brand-600'} text-white flex items-center justify-center text-sm flex-shrink-0 mt-1">
+                    <i class="fas ${isUser ? 'fa-user' : 'fa-robot'}"></i>
+                </div>
+                <div class="${isUser ? 'bg-brand-600 text-white' : 'bg-white border border-slate-200/80 text-slate-800'} rounded-2xl ${isUser ? 'rounded-tr-none' : 'rounded-tl-none'} p-4 shadow-sm max-w-2xl text-sm leading-relaxed">
+                    ${formatMarkdown(text)}
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const container = document.getElementById('chat-messages');
+            const id = 'typing-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `flex items-start space-x-3`;
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center text-sm flex-shrink-0 mt-1">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="bg-white border border-slate-200/80 rounded-2xl rounded-tl-none p-4 shadow-sm text-sm text-slate-500 flex items-center space-x-2">
+                    <div class="w-2 h-2 rounded-full bg-brand-500 animate-bounce"></div>
+                    <div class="w-2 h-2 rounded-full bg-brand-500 animate-bounce [animation-delay:0.2s]"></div>
+                    <div class="w-2 h-2 rounded-full bg-brand-500 animate-bounce [animation-delay:0.4s]"></div>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const el = document.getElementById(id);
+            if(el) el.remove();
+        }
+
+        function clearChat() {
+            chatHistory = [];
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center text-sm flex-shrink-0 mt-1">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl rounded-tl-none p-4 shadow-sm max-w-2xl text-sm text-slate-800">
+                        <p class="font-semibold text-brand-700 mb-1">Чат тазартылды! 🧹</p>
+                        <p>Жаңа сұрақ қоя аласыз.</p>
+                    </div>
+                </div>
+            `;
+            showNotification('Чат тарихы тазартылды');
+        }
+
+        function formatMarkdown(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Quick 15-Minute Generator
+        async function generateQuick15() {
+            const grade = document.getElementById('q15-grade').value;
+            const val = document.getElementById('q15-value').value;
+            const topic = document.getElementById('q15-topic').value;
+            
+            const resultBox = document.getElementById('q15-result-content');
+            resultBox.innerHTML = `
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-spinner fa-spin text-3xl text-amber-500 mb-3"></i>
+                    <p>AI 15 минуттық сабақ жоспарын жасап жатыр...</p>
+                </div>
+            `;
+
+            const prompt = `«Өнегелі 15 минут» жобасына арналған ${grade} сыныпқа, "${val}" құндылығы бойынша, "${topic}" тақырыбында 15 минуттық тәрбие сағатының құрылымын жаса. Құрылымы: 1. Тақырып, 2. Мақсат, 3. Құндылық, 4. Қызығушылықты ояту (3 мин), 5. Негізгі тапсырма (7 мин), 6. Талқылау сұрақтары (3 мин), 7. Рефлексия (2 мин). Тілі: ${currentLang}`;
+            
+            const res = await callGeminiAPI(prompt);
+            resultBox.innerHTML = `<div class="prose text-slate-700 text-sm leading-relaxed space-y-2">${formatMarkdown(res)}</div>`;
+            showNotification('15 минуттық сабақ сәтті дайындалды!');
+        }
+
+        function copyQuick15Result() {
+            const content = document.getElementById('q15-result-content').innerText;
+            navigator.clipboard ? navigator.clipboard.writeText(content) : document.execCommand('copy');
+            showNotification('Мәтін буферге көшірілді!');
+        }
+
+        // Task Generator
+        async function generateCustomTask() {
+            const grade = document.getElementById('task-grade').value;
+            const type = document.getElementById('task-type').value;
+            const val = document.getElementById('task-val').value;
+            const lang = document.getElementById('task-lang').value;
+
+            const card = document.getElementById('task-output-card');
+            const body = document.getElementById('task-output-body');
+            
+            card.classList.remove('hidden');
+            body.innerHTML = `<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-cyan-600"></i> Жүктелуде...</div>`;
+
+            const prompt = `${grade} үшін "${val}" құндылығы бойынша "${type}" форматында сапалы тапсырма жаса. Дескрипторлары мен орындау әдістемесін қоса көрсет. Тілі: ${lang}`;
+            const res = await callGeminiAPI(prompt);
+            body.innerHTML = formatMarkdown(res);
+            showNotification('Тапсырма жасалды!');
+        }
+
+        function copyElementText(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard ? navigator.clipboard.writeText(text) : document.execCommand('copy');
+            showNotification('Көшірілді!');
+        }
+
+        // Test Generator & Quiz Runner
+        async function generateQuiz() {
+            const grade = document.getElementById('test-grade').value;
+            const topic = document.getElementById('test-topic').value;
+            const count = document.getElementById('test-count').value;
+
+            const container = document.getElementById('quiz-container');
+            container.classList.remove('hidden');
+            document.getElementById('quiz-question-box').innerHTML = `<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-purple-600"></i> Тест сұрақтары дайындалуда...</div>`;
+
+            const prompt = `JSON форматта ${grade} сынып оқушыларына арналған "${topic}" тақырыбы бойынша ${count} сұрақтан тұратын тест құр. Әр сұрақтың сұрақ мәтіні (question), 4 нұсқасы (options массив түрінде), және дұрыс жауап индексі (correct: 0-3) болсын. Тек JSON қайтар, басқа текст жазба. Формат: [{"question": "...", "options": ["A", "B", "C", "D"], "correct": 0}]`;
+
+            const res = await callGeminiAPI(prompt);
+            try {
+                // Clean markdown code blocks if returned
+                let cleanRes = res.replace(/```json/g, '').replace(/```/g, '').trim();
+                currentQuizData = JSON.parse(cleanRes);
+                currentQuizIndex = 0;
+                quizScore = 0;
+                renderQuizQuestion();
+            } catch(e) {
+                // Fallback mock quiz if JSON parse fails
+                currentQuizData = [
+                    { question: `${topic} бойынша басты құндылық не болып табылады?`, options: ["Адалдық", "Жалқаулық", "Бейқамдық", "Жауапкерсіздік"], correct: 0 },
+                    { question: `«Адал азамат» ұғымы нені білдіреді?`, options: ["Тек өз мүддесін ойлау", "Еліне адал қызмет ету", "Заңды бұзу", "Еңбектен қашу"], correct: 1 },
+                    { question: `Отбасы тәрбиесінің бастауы неде?`, options: ["Ғаламтор", "Үлкенді сыйлау", "Көше", "Ойын"], correct: 1 }
+                ];
+                currentQuizIndex = 0;
+                quizScore = 0;
+                renderQuizQuestion();
+            }
+        }
+
+        function renderQuizQuestion() {
+            if(!currentQuizData || currentQuizIndex >= currentQuizData.length) {
+                document.getElementById('quiz-question-box').innerHTML = `
+                    <div class="text-center py-8 space-y-4">
+                        <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-3xl mx-auto">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900">Тест аяқталды!</h3>
+                        <p class="text-slate-600">Сіздің нәтижеңіз: <strong class="text-purple-600">${quizScore} / ${currentQuizData.length}</strong> дұрыс жауап (${Math.round((quizScore/currentQuizData.length)*100)}%)</p>
+                        <button onclick="generateQuiz()" class="px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-xl">Қайта бастау</button>
+                    </div>
+                `;
+                document.getElementById('quiz-actions').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('quiz-actions').classList.remove('hidden');
+            const q = currentQuizData[currentQuizIndex];
+            document.getElementById('quiz-progress').innerText = `${currentQuizIndex + 1} / ${currentQuizData.length}`;
+            
+            let html = `<h4 class="font-bold text-slate-900 text-base mb-4">${currentQuizIndex + 1}. ${q.question}</h4><div class="space-y-3">`;
+            q.options.forEach((opt, idx) => {
+                html += `
+                    <label class="flex items-center space-x-3 p-4 bg-slate-50 hover:bg-purple-50/50 border border-slate-200 rounded-xl cursor-pointer transition-all">
+                        <input type="radio" name="quiz-opt" value="${idx}" class="w-4 h-4 text-purple-600 focus:ring-purple-500">
+                        <span class="text-sm font-medium text-slate-700">${opt}</span>
+                    </label>
+                `;
+            });
+            html += `</div>`;
+            document.getElementById('quiz-question-box').innerHTML = html;
+        }
+
+        function nextQuizQuestion() {
+            const selected = document.querySelector('input[name="quiz-opt"]:checked');
+            if(!selected) {
+                showNotification('Жауапты таңдаңыз!');
+                return;
+            }
+            const ans = parseInt(selected.value);
+            if(ans === currentQuizData[currentQuizIndex].correct) {
+                quizScore++;
+            }
+            currentQuizIndex++;
+            renderQuizQuestion();
+        }
+
+        // Video Library Rendering & Filtering
+        function renderVideos(list) {
+            const tbody = document.getElementById('video-table-body');
+            tbody.innerHTML = '';
+            list.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-slate-400">#${v.id}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-900">${v.title}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-600">${v.grade}</span></td>
+                    <td class="py-3 px-4"><span class="px-2 py-1 bg-brand-50 rounded-lg text-xs font-semibold text-brand-700">${v.value}</span></td>
+                    <td class="py-3 px-4 text-right">
+                        <a href="${v.url}" target="_blank" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow transition-all">
+                            <i class="fab fa-youtube"></i> <span>YouTube-тан іздеу</span>
+                        </a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterVideos() {
+            const query = document.getElementById('video-search').value.toLowerCase();
+            const filtered = videoDatabase.filter(v => v.title.toLowerCase().includes(query) || v.value.toLowerCase().includes(query) || v.grade.toLowerCase().includes(query));
+            renderVideos(filtered);
+        }
+
+        // Values Grid Rendering
+        function renderValues() {
+            const grid = document.getElementById('values-grid');
+            grid.innerHTML = '';
+            valuesList.forEach(val => {
+                const div = document.createElement('div');
+                div.className = "p-6 rounded-2xl border border-slate-200/80 bg-white hover:shadow-lg hover:border-emerald-500 transition-all cursor-pointer flex items-start space-x-4";
+                div.onclick = () => {
+                    switchTab('chat');
+                    sendPresetPrompt(`"${val.title}" құндылығы туралы 5-сыныпқа арналған тәрбие сағатын жаса`);
+                };
+                div.innerHTML = `
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fas ${val.icon}"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 mb-1">${val.title}</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">${val.desc}</p>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // Feedback System
+        function setRating(r) {
+            currentRating = r;
+            const stars = document.querySelectorAll('#star-rating i');
+            stars.forEach((star, idx) => {
+                if(idx < r) {
+                    star.className = "fas fa-star text-amber-400";
+                } else {
+                    star.className = "far fa-star text-slate-300";
+                }
+            });
+        }
+
+        function submitFeedback(e) {
+            e.preventDefault();
+            const text = document.getElementById('fb-text').value;
+            if(!text) return;
+
+            document.getElementById('fb-text').value = '';
+            showNotification('Кері байланысыңыз үшін рақмет! Сіздің пікіріңіз жобаны жақсартуға көмектеседі.');
+        }
+    </script>
+</body>
+</html>
